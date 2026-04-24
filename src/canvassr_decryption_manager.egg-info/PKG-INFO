@@ -1,3 +1,13 @@
+Metadata-Version: 2.4
+Name: canvassr-decryption-manager
+Version: 0.1.0
+Summary: CLI tool for decrypting Canvassr encrypted CSV exports.
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: cryptography>=43.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+
 # Canvassr Decryption Manager
 
 Python CLI for decrypting Canvassr encrypted CSV payloads into user-friendly expanded CSV output.
@@ -42,15 +52,13 @@ Data is stored in `./data` via mounted volume.
 Use this for faster local iteration when editing Python code:
 
 ```bash
-docker compose -f docker-compose.dev.yml build
 docker compose -f docker-compose.dev.yml run --rm decryption-manager-dev
 ```
 
 Notes:
 
 - Source is mounted from your host, so code edits apply on next run without image rebuild.
-- Dependencies are preinstalled in a cached dev image, so startup is much faster after the initial build.
-- Rebuild only when dependency definitions change (for example `pyproject.toml` changes).
+- This mode installs dependencies at startup for convenience, so startup is slower than the standard image run.
 
 ## Local development setup
 

@@ -1,0 +1,12 @@
+services:
+  decryption-manager:
+    build: .
+    image: canvassr/decryption-manager:local
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./data:/data
+      - ./:/workspace
+    environment:
+      - CDM_DATA_DIR=/data
+    working_dir: /workspace
