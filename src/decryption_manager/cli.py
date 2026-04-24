@@ -62,7 +62,11 @@ def run() -> None:
     base_dir = data_dir()
     auth = AuthManager(base_dir)
     vault = KeyVault(base_dir)
-    gpg = GpgAdapter()
+    try:
+        gpg = GpgAdapter()
+    except Exception as exc:  # noqa: BLE001
+        print_error(f"GPG setup error: {exc}")
+        return
 
     if not auth.exists():
         print("No password configured. Create one now.")
