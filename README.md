@@ -2,6 +2,17 @@
 
 Python CLI for decrypting Canvassr encrypted CSV payloads into user-friendly expanded CSV output.
 
+## Quick Start (Non-Technical)
+
+If you just want to download and run it like a normal app:
+
+1. Open the latest release page: [Download Latest Release](https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest)
+2. Under **Assets**, download:
+   - `canvassr-decryption-manager.exe` (Windows)
+3. Double-click the `.exe` file to run.
+
+If Windows SmartScreen appears, click **More info** -> **Run anyway**.
+
 ## Features
 
 - First-launch password setup and login gate.
@@ -101,7 +112,7 @@ Artifacts:
 
 ### Windows (.exe)
 
-1. Download `canvassr-decryption-manager.exe` from your GitHub Release artifacts.
+1. Download `canvassr-decryption-manager.exe` from the [Latest Release](https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest).
 2. (Recommended) Verify checksum against `SHA256SUMS`.
 3. Save the `.exe` somewhere permanent, for example:
    - `C:\Program Files\CanvassrDecryptionManager\`
@@ -119,7 +130,7 @@ Notes:
 
 ### Linux (binary)
 
-1. Download `canvassr-decryption-manager` and `SHA256SUMS` from Release artifacts.
+1. Download `canvassr-decryption-manager` and `SHA256SUMS` from the [Releases page](https://github.com/joshuasy10/canvassr_decryption_manager/releases).
 2. Verify checksum.
 3. Mark executable and run:
 
@@ -168,8 +179,8 @@ After CI completes, binaries will be available publicly under the repository's R
 
 Release links:
 
-- Releases page: `https://github.com/joshuasy10/canvassr_decryption_manager/releases`
-- Latest release: `https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest`
+- [Releases page](https://github.com/joshuasy10/canvassr_decryption_manager/releases)
+- [Latest release](https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest)
 
 ## Security notes
 
