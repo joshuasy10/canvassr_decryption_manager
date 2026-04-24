@@ -9,7 +9,8 @@ If you just want to download and run it like a normal app:
 1. Open the latest release page: [Download Latest Release](https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest)
 2. Under **Assets**, download:
    - `canvassr-decryption-manager.exe` (Windows)
-3. Double-click the `.exe` file to run.
+3. **Windows only:** install Gpg4win (includes Kleopatra) from [gpg4win.org/download](https://www.gpg4win.org/download.html).
+4. Double-click the `.exe` file to run.
 
 If Windows SmartScreen appears, click **More info** -> **Run anyway**.
 
@@ -113,10 +114,11 @@ Artifacts:
 ### Windows (.exe)
 
 1. Download `canvassr-decryption-manager.exe` from the [Latest Release](https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest).
-2. (Recommended) Verify checksum against `SHA256SUMS`.
-3. Save the `.exe` somewhere permanent, for example:
+2. Install Gpg4win (Kleopatra package) from [gpg4win.org/download](https://www.gpg4win.org/download.html).
+3. (Recommended) Verify checksum against `SHA256SUMS`.
+4. Save the `.exe` somewhere permanent, for example:
    - `C:\Program Files\CanvassrDecryptionManager\`
-4. Double-click the `.exe` to run, or run it from PowerShell:
+5. Double-click the `.exe` to run, or run it from PowerShell:
 
 ```powershell
 .\canvassr-decryption-manager.exe
@@ -127,6 +129,7 @@ Notes:
 - On first run, Windows SmartScreen may warn because the binary is unsigned.
 - Click `More info` -> `Run anyway` (or code-sign the executable for production distribution).
 - The tool stores local data in its configured data directory and will prompt for first-time password setup.
+- Gpg4win/Kleopatra is required on Windows because this build uses the system `gpg.exe`.
 
 ### Linux (binary)
 

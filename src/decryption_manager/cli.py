@@ -36,6 +36,13 @@ def print_banner() -> None:
     print(ASCII_BANNER)
 
 
+def print_gpg_install_instructions() -> None:
+    if os.name != "nt":
+        return
+    print("Windows requirement: install Gpg4win (includes Kleopatra).")
+    print("Download: https://www.gpg4win.org/download.html")
+
+
 def normalize_input_path(raw_path: str) -> str:
     cleaned = raw_path.strip().strip('"').strip("'")
     if os.name == "nt":
@@ -66,6 +73,7 @@ def run() -> None:
         gpg = GpgAdapter()
     except Exception as exc:  # noqa: BLE001
         print_error(f"GPG setup error: {exc}")
+        print_gpg_install_instructions()
         return
 
     if not auth.exists():
