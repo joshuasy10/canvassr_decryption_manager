@@ -15,6 +15,15 @@ from .transform import flatten_value, payload_to_dict
 
 DELETE_CONFIRMATION_TEXT = "I understand these keys will be deleted forever and won't be recoverable."
 
+ASCII_BANNER = r"""
+  ____                                    _____  __  __
+ / ___|__ _ _ ____   ____ _ ___ ___ _ __ |  __ \|  \/  | 
+| |   / _` | '_ \ \ / / _` / __/ __| '__/| |  \ | \  / |
+| |__| (_| | | | \ V / (_| \__ \__ \ |   | |__/ | |\/| |
+ \____\__,_|_| |_|\_/ \__,_|___/___/_|   |_____/|_|  |_|
+ 
+"""
+
 
 def print_error(message: str) -> None:
     print(f"\033[41;97m {message} \033[0m")
@@ -22,6 +31,9 @@ def print_error(message: str) -> None:
 
 def print_success(message: str) -> None:
     print(f"\033[42;97m {message} \033[0m")
+
+def print_banner() -> None:
+    print(ASCII_BANNER)
 
 
 def normalize_input_path(raw_path: str) -> str:
@@ -46,6 +58,7 @@ def data_dir() -> Path:
 
 
 def run() -> None:
+    print_banner()
     base_dir = data_dir()
     auth = AuthManager(base_dir)
     vault = KeyVault(base_dir)
