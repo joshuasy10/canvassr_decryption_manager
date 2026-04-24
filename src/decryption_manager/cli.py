@@ -106,6 +106,7 @@ def run() -> None:
 
 
 def prompt_new_password() -> str:
+    print_error("Use a high-quality password. It encrypts saved keys, and without it they are unrecoverable.")
     while True:
         p1 = getpass.getpass("New password: ")
         p2 = getpass.getpass("Confirm password: ")
