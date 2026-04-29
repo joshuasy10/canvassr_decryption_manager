@@ -12,6 +12,18 @@ Requires-Dist: pytest>=8.0.0; extra == "dev"
 
 Python CLI for decrypting Canvassr encrypted CSV payloads into user-friendly expanded CSV output.
 
+## Quick Start (Non-Technical)
+
+If you just want to download and run it like a normal app:
+
+1. Open the latest release page: [Download Latest Release](https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest)
+2. Under **Assets**, download:
+   - `canvassr-decryption-manager.exe` (Windows)
+3. **Windows only:** install Gpg4win (includes Kleopatra) from [gpg4win.org/download](https://www.gpg4win.org/download.html).
+4. Double-click the `.exe` file to run.
+
+If Windows SmartScreen appears, click **More info** -> **Run anyway**.
+
 ## Features
 
 - First-launch password setup and login gate.
@@ -52,13 +64,15 @@ Data is stored in `./data` via mounted volume.
 Use this for faster local iteration when editing Python code:
 
 ```bash
+docker compose -f docker-compose.dev.yml build
 docker compose -f docker-compose.dev.yml run --rm decryption-manager-dev
 ```
 
 Notes:
 
 - Source is mounted from your host, so code edits apply on next run without image rebuild.
-- This mode installs dependencies at startup for convenience, so startup is slower than the standard image run.
+- Dependencies are preinstalled in a cached dev image, so startup is much faster after the initial build.
+- Rebuild only when dependency definitions change (for example `pyproject.toml` changes).
 
 ## Local development setup
 
@@ -109,11 +123,12 @@ Artifacts:
 
 ### Windows (.exe)
 
-1. Download `canvassr-decryption-manager.exe` from your GitHub Release artifacts.
-2. (Recommended) Verify checksum against `SHA256SUMS`.
-3. Save the `.exe` somewhere permanent, for example:
+1. Download `canvassr-decryption-manager.exe` from the [Latest Release](https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest).
+2. Install Gpg4win (Kleopatra package) from [gpg4win.org/download](https://www.gpg4win.org/download.html).
+3. (Recommended) Verify checksum against `SHA256SUMS`.
+4. Save the `.exe` somewhere permanent, for example:
    - `C:\Program Files\CanvassrDecryptionManager\`
-4. Double-click the `.exe` to run, or run it from PowerShell:
+5. Double-click the `.exe` to run, or run it from PowerShell:
 
 ```powershell
 .\canvassr-decryption-manager.exe
@@ -124,10 +139,11 @@ Notes:
 - On first run, Windows SmartScreen may warn because the binary is unsigned.
 - Click `More info` -> `Run anyway` (or code-sign the executable for production distribution).
 - The tool stores local data in its configured data directory and will prompt for first-time password setup.
+- Gpg4win/Kleopatra is required on Windows because this build uses the system `gpg.exe`.
 
 ### Linux (binary)
 
-1. Download `canvassr-decryption-manager` and `SHA256SUMS` from Release artifacts.
+1. Download `canvassr-decryption-manager` and `SHA256SUMS` from the [Releases page](https://github.com/joshuasy10/canvassr_decryption_manager/releases).
 2. Verify checksum.
 3. Mark executable and run:
 
@@ -176,8 +192,8 @@ After CI completes, binaries will be available publicly under the repository's R
 
 Release links:
 
-- Releases page: `https://github.com/joshuasy10/canvassr_decryption_manager/releases`
-- Latest release: `https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest`
+- [Releases page](https://github.com/joshuasy10/canvassr_decryption_manager/releases)
+- [Latest release](https://github.com/joshuasy10/canvassr_decryption_manager/releases/latest)
 
 ## Security notes
 

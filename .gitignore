@@ -6,3 +6,7 @@ build/
 dist/
 data/
 output/
+input/*
+outpir/*
+!input/.gitignore
+!outpir/.gitignore

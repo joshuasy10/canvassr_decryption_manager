@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import binascii
 import getpass
 import os
 import re
@@ -31,6 +33,10 @@ def print_error(message: str) -> None:
 
 def print_success(message: str) -> None:
     print(f"\033[42;97m {message} \033[0m")
+
+
+def print_general_error(message: str) -> None:
+    print(f"\033[31m{message}\033[0m")
 
 def print_banner() -> None:
     print(ASCII_BANNER)
@@ -317,100 +323,149 @@ def select_key(keys: list[dict]) -> dict | None:
         print_error("Invalid option.")
 
 
+def extract_signature_png_bytes(value: object) -> bytes | None:
+    if not isinstance(value, str):
+        return None
+    cleaned_value = value.strip()
+    if not cleaned_value.lower().startswith("data:image/png;base64,"):
+        return None
+
+    encoded = cleaned_value.split(",", 1)[1]
+    # Be tolerant of wrapped/newline-separated base64 payloads from CSV exports.
+    encoded = "".join(encoded.split())
+
+    # Add padding when needed.
+    missing_padding = len(encoded) % 4
+    if missing_padding:
+        encoded += "=" * (4 - missing_padding)
+
+    try:
+        # validate=False tolerates benign formatting differences in exported payloads.
+        return base64.b64decode(encoded, validate=False)
+    except (ValueError, binascii.Error):
+        return None
+
+
 def handle_decrypt(vault: KeyVault, gpg: GpgAdapter, app_password: str) -> None:
-    keys = vault.list_keys(app_password)
-    if not keys:
-        print_error("No keys available. Import or create a key first.")
-        return
-    selected_key = select_key(keys)
-    if selected_key is None:
-        print_error("No key selected.")
-        return
+    try:
+        keys = vault.list_keys(app_password)
+        if not keys:
+            print_error("No keys available. Import or create a key first.")
+            return
+        selected_key = select_key(keys)
+        if selected_key is None:
+            print_error("No key selected.")
+            return
 
-    file_location = input("Enter file location: ").strip()
-    normalized_input = normalize_input_path(file_location)
-    csv_path = Path(normalized_input).expanduser()
+        file_location = input("Enter file location: ").strip()
+        normalized_input = normalize_input_path(file_location)
+        csv_path = Path(normalized_input).expanduser()
 
-    if not normalized_input:
-        print_error("CSV path is empty.")
-        return
+        if not normalized_input:
+            print_error("CSV path is empty.")
+            return
 
-    if normalized_input != file_location:
-        print(f"Detected wrapped quotes. Normalized path: {normalized_input}")
+        if normalized_input != file_location:
+            print(f"Detected wrapped quotes. Normalized path: {normalized_input}")
 
-    if not csv_path.exists():
-        print_error("CSV file not found.")
-        print(f"Resolved path: {csv_path.resolve()}")
-        print(f"Current working directory: {Path.cwd()}")
-        return
+        if not csv_path.exists():
+            print_error("CSV file not found.")
+            print(f"Resolved path: {csv_path.resolve()}")
+            print(f"Current working directory: {Path.cwd()}")
+            return
 
-    if not csv_path.is_file():
-        print_error("Path exists but is not a file.")
-        print(f"Resolved path: {csv_path.resolve()}")
-        return
+        if not csv_path.is_file():
+            print_error("Path exists but is not a file.")
+            print(f"Resolved path: {csv_path.resolve()}")
+            return
 
-    if csv_path.suffix.lower() != ".csv":
-        print_error("Path is not a .csv file.")
-        print(f"Resolved path: {csv_path.resolve()}")
-        print(f"Detected extension: {csv_path.suffix or '(none)'}")
-        return
+        if csv_path.suffix.lower() != ".csv":
+            print_error("Path is not a .csv file.")
+            print(f"Resolved path: {csv_path.resolve()}")
+            print(f"Detected extension: {csv_path.suffix or '(none)'}")
+            return
 
-    encrypted_column = input("Encrypted column name [encrypted_response]: ").strip() or "encrypted_response"
-    output_dir_input = input("Output folder [./output]: ").strip() or "./output"
-    output_dir = Path(output_dir_input).expanduser().resolve()
+        encrypted_column = input("Encrypted column name [encrypted_response]: ").strip() or "encrypted_response"
+        output_dir_input = input("Output folder [./output]: ").strip() or "./output"
+        output_dir = Path(output_dir_input).expanduser().resolve()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        source_stem = re.sub(r"[^A-Za-z0-9._-]+", "_", csv_path.stem).strip("._-") or "input"
+        output_base_name = f"decrypted_{source_stem}_{timestamp}"
 
-    rows = read_csv_rows(csv_path)
-    if not rows:
-        print_error("CSV has no rows.")
-        return
+        rows = read_csv_rows(csv_path)
+        if not rows:
+            print_error("CSV has no rows.")
+            return
 
-    decrypted_dicts: list[dict] = []
-    failed_count = 0
-    expanded_headers: set[str] = set()
-    for row in rows:
-        cipher = row.get(encrypted_column, "")
-        if not cipher:
-            failed_count += 1
-            decrypted_dicts.append({})
-            continue
-        try:
-            decrypted = gpg.decrypt(cipher, selected_key["private_key"], selected_key.get("key_passphrase", ""))
-            mapped = payload_to_dict(decrypted)
-            expanded_headers.update(mapped.keys())
-            decrypted_dicts.append(mapped)
-        except Exception:  # noqa: BLE001
-            failed_count += 1
-            decrypted_dicts.append({})
+        decrypted_dicts: list[dict] = []
+        failed_count = 0
+        extracted_signature_count = 0
+        expanded_headers: set[str] = set()
+        signature_output_root = output_dir / f"{output_base_name}_signatures"
+        for record_number, row in enumerate(rows, start=1):
+            cipher = row.get(encrypted_column, "")
+            if not cipher:
+                failed_count += 1
+                decrypted_dicts.append({})
+                continue
+            try:
+                decrypted = gpg.decrypt(cipher, selected_key["private_key"], selected_key.get("key_passphrase", ""))
+                mapped = payload_to_dict(decrypted)
+                expanded_headers.update(mapped.keys())
 
-    output_rows: list[dict[str, str]] = []
-    original_headers = [h for h in rows[0].keys() if h != encrypted_column]
-    sorted_expanded = sorted(expanded_headers)
-    for row, expanded in zip(rows, decrypted_dicts, strict=False):
-        out: dict[str, str] = {}
-        for key in original_headers:
-            out[key] = flatten_value(row.get(key))
-        for key in sorted_expanded:
-            out[key] = flatten_value(expanded.get(key))
-        output_rows.append(out)
+                signature_number = 1
+                for value in mapped.values():
+                    png_bytes = extract_signature_png_bytes(value)
+                    if png_bytes is None:
+                        continue
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = output_dir / f"decrypted_{timestamp}.csv"
-    write_csv_rows(output_file, original_headers + sorted_expanded, output_rows)
+                    signature_output_root.mkdir(parents=True, exist_ok=True)
+                    output_png = signature_output_root / f"{record_number}_{signature_number}.png"
+                    output_png.write_bytes(png_bytes)
+                    signature_number += 1
+                    extracted_signature_count += 1
 
-    resolved_output = output_file.resolve()
-    print_success(f"Output written to: {resolved_output}")
-    if str(resolved_output).startswith("/workspace/"):
-        host_equivalent = Path.cwd() / resolved_output.relative_to("/workspace")
-        print(f"Host-equivalent path: {host_equivalent}")
+                decrypted_dicts.append(mapped)
+            except Exception:  # noqa: BLE001
+                failed_count += 1
+                decrypted_dicts.append({})
 
-    opened = open_folder(output_dir)
-    if not opened:
-        if str(Path.cwd()) == "/workspace":
-            print_error("Could not open folder automatically inside container environment.")
-            print("Open the output folder from host using the path shown above.")
+        output_rows: list[dict[str, str]] = []
+        original_headers = [h for h in rows[0].keys() if h != encrypted_column]
+        sorted_expanded = sorted(expanded_headers)
+        for row, expanded in zip(rows, decrypted_dicts, strict=False):
+            out: dict[str, str] = {}
+            for key in original_headers:
+                out[key] = flatten_value(row.get(key))
+            for key in sorted_expanded:
+                out[key] = flatten_value(expanded.get(key))
+            output_rows.append(out)
+
+        output_file = output_dir / f"{output_base_name}.csv"
+        write_csv_rows(output_file, original_headers + sorted_expanded, output_rows)
+
+        resolved_output = output_file.resolve()
+        print_success(f"Output written to: {resolved_output}")
+        if str(resolved_output).startswith("/workspace/"):
+            host_equivalent = Path.cwd() / resolved_output.relative_to("/workspace")
+            print(f"Host-equivalent path: {host_equivalent}")
+
+        opened = open_folder(output_dir)
+        if not opened:
+            if str(Path.cwd()) == "/workspace":
+                print_error("Could not open folder automatically inside container environment.")
+                print("Open the output folder from host using the path shown above.")
+            else:
+                print_error("Could not open folder automatically on this system.")
+        if extracted_signature_count > 0:
+            print_success(
+                f"Extracted {extracted_signature_count} signature PNG(s) to: {signature_output_root.resolve()}"
+            )
         else:
-            print_error("Could not open folder automatically on this system.")
-    print_success(f"Processed: {len(rows)} | Succeeded: {len(rows) - failed_count} | Failed: {failed_count}")
+            print_error("No signature PNG data found in decrypted rows.")
+        print_success(f"Processed: {len(rows)} | Succeeded: {len(rows) - failed_count} | Failed: {failed_count}")
+    except Exception as exc:  # noqa: BLE001
+        print_general_error(f"General error while decrypting file: {exc}")
 
 
 if __name__ == "__main__":

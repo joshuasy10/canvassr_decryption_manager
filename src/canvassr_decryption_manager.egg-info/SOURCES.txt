@@ -16,6 +16,7 @@ src/decryption_manager/key_vault.py
 src/decryption_manager/platform_open.py
 src/decryption_manager/transform.py
 tests/test_auth_and_vault.py
+tests/test_test_charity_campaign_csv_decrypt.py
 tests/test_cli_decrypt_e2e.py
 tests/test_cli_menu_flow.py
 tests/test_cli_selection.py
