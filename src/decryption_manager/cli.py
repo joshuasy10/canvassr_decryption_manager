@@ -414,7 +414,7 @@ def handle_decrypt(vault: KeyVault, gpg: GpgAdapter, app_password: str) -> None:
                 expanded_headers.update(mapped.keys())
 
                 signature_number = 1
-                for value in mapped.values():
+                for key, value in mapped.items():
                     png_bytes = extract_signature_png_bytes(value)
                     if png_bytes is None:
                         continue
@@ -422,6 +422,7 @@ def handle_decrypt(vault: KeyVault, gpg: GpgAdapter, app_password: str) -> None:
                     signature_output_root.mkdir(parents=True, exist_ok=True)
                     output_png = signature_output_root / f"{record_number}_{signature_number}.png"
                     output_png.write_bytes(png_bytes)
+                    mapped[key] = output_png.name
                     signature_number += 1
                     extracted_signature_count += 1
 

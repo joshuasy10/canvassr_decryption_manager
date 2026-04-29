@@ -133,3 +133,11 @@ def test_handle_decrypt_extracts_signature_png_files(monkeypatch, tmp_path: Path
     assert (signatures_dir / "1_1.png").exists()
     assert (signatures_dir / "1_2.png").exists()
     assert (signatures_dir / "2_1.png").exists()
+
+    expected_output = output_dir / "decrypted_input_signatures_20260102_030405.csv"
+    with expected_output.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert rows[0]["donor_signature"] == "1_1.png"
+    assert rows[0]["final_signature"] == "1_2.png"
+    assert rows[1]["disclosure_signature"] == "2_1.png"
