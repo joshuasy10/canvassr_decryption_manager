@@ -30,6 +30,8 @@ If Windows SmartScreen appears, click **More info** -> **Run anyway**.
   - reads encrypted CSV
   - decrypts each row
   - expands decrypted JSON into separate output columns
+  - extracts signature `data:image/png;base64,...` values to PNG files
+  - replaces signature values in CSV with PNG filenames
   - writes timestamped output CSV
   - attempts to open output folder automatically
 - Docker-first dependency/runtime management.
@@ -84,6 +86,24 @@ Main menu:
 
 If multiple keys exist, decrypt flow requires key selection.  
 If no keys exist, user is prompted to import/create key first.
+
+## Decryption output format
+
+Given an input file:
+
+- `campaign_some-charity_export_20260429_194234.csv`
+
+The decrypt flow writes:
+
+- CSV: `decrypted_campaign_some-charity_export_20260429_194234_<timestamp>.csv`
+- Signatures folder: `decrypted_campaign_some-charity_export_20260429_194234_<timestamp>_signatures/`
+
+Signature behavior:
+
+- Any decrypted field value matching `data:image/png;base64,...` is saved as a PNG.
+- PNG files are named per record/signature order: `<record_number>_<signature_number>.png` (for example `1_1.png`, `1_2.png`, `2_1.png`).
+- The corresponding CSV field value is replaced with the PNG filename (for example `1_1.png`) instead of the full base64 payload.
+- Non-signature fields remain flattened as normal CSV values.
 
 ## Packaging
 
